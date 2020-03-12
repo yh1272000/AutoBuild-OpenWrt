@@ -70,6 +70,12 @@ jobs:
         ./scripts/feeds install -a
         ./scripts/feeds install -a
 
+    #- name: Import external feeds
+    #  working-directory: ./openwrt
+    #  run: |
+    #    git clone https://github.com/Lienol/openwrt-package package/lienol
+    #    git clone "your_github_link" package/"your_folder_name"      
+
     - name: Configuration Customization - Build_x86_64
       env:
         CONFIG_FILE: 'x86_64.config'
@@ -91,8 +97,14 @@ jobs:
         echo -e "$(nproc) thread build."
         make -j$(nproc) V=s
 
-    - name : Upload artifact
+    - name: Assemble artifact
+      run: |
+          rm -rf ./artifact/
+          mkdir -p ./artifact/
+          find openwrt/bin/targets/ -name "*sysupgrade*bin*" | xargs -i mv -f {} ./artifact/
+          find openwrt/bin/targets/ -name "*combined*img*" | xargs -i mv -f {} ./artifact/
+    - name: Upload artifact
       uses: actions/upload-artifact@master
       with:
-        name: OpenWrt
-        path: openwrt/bin
+        name: OpenWrt firmware
+        path: ./artifact/
